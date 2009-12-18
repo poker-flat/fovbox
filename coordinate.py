@@ -1,5 +1,12 @@
 """
-Coordinate library
+Module: coordinate
+
+Description:
+Coordinate library that contains these classes:
+{<Coordinate>} - Parses and represents geographic coordinates (latitude and
+                 longitude).
+{<Point>} - Contains methods to calculate range, bearing, and create points
+            from those.
 
 Decimal degrees:
     123.12341234[NSEW]
@@ -275,7 +282,7 @@ class Coordinate:
                  'W' or 'S'.
         """
         
-        if (self.coord_dd or int(self.coord_dd) == 0) and self.direction:
+        if self.coord_dd or (self.coord_dd != None and int(self.coord_dd) == 0) and self.direction:
             return "%s %s" % (
                 self.coord_dd,
                 self.direction
@@ -295,7 +302,7 @@ class Coordinate:
         if self.direction in ['W', 'S']:
             return "-%s" % self.coord_dd
         else:
-            if self.coord_dd or int(self.coord_dd) == 0:
+            if self.coord_dd or (self.coord_dd != None and int(self.coord_dd) == 0):
                 return "%s" % self.coord_dd
             else:
                 return None
@@ -331,7 +338,10 @@ class Coordinate:
         {boolean} True if the coordinate parsing succeeded, False otherwise.
         """
         
-        return (self.coord_dd or int(self.coord_dd) == 0) and self.coord_dms and self.direction
+        try:
+            return (self.coord_dd or int(self.coord_dd) == 0) and self.coord_dms and self.direction
+        except:
+            return False
     
     
     def debug(self):
@@ -351,19 +361,38 @@ class Coordinate:
 
 class Point:
     """
+    Class: Point
     
+    Public Methods:
+    __init__ - Constructor.
+    __str__ - String formatting function.
+    geoDistanceTo - Calculates the geographic distance between two points.
+    geoBearingTo - Calculates the geographic bearing (from North) between two
+                   points.
+    geoWaypoint - Returns a <Point> who's coordinates are calculated by the
+                  range abd bearing parameters.
+    
+    Requires:
+    <Coordinate> - Coordinate parsing class used in the constructor of this
+                   class.
+    
+    Reference:
+    Williams, Ed, 2000, "Aviation Formulary V1.43" web page
+    http://williams.best.vwh.net/avform.htm
     """
     
     x = None
     y = None
     
+    
     def __init__(self, x, y):
         """
-        Method: __init__ (constructor)
+        Method: __init__ (Constructor)
         """
         
         self.x = float(Coordinate(x, "Lon").getDd())
         self.y = float(Coordinate(y, "Lat").getDd())
+    
     
     def __str__(self):
         """
@@ -378,6 +407,7 @@ class Point:
         
         return "(%s, %s)" % (self.x, self.y)
     
+    
     def geoDistanceTo(self, point, units='km'):
         """
         Method: geoDistanceTo
@@ -388,10 +418,6 @@ class Point:
         Returns:
         {float} Great Circle distance to Point. Coordinates must be in decimal
         degrees.
-        
-        Reference:
-        Williams, Ed, 2000, "Aviation Formulary V1.43" web page
-        http://williams.best.vwh.net/avform.htm
         """
         
         global EARTH_RADIUS_KM, EARTH_RADIUS_MI, EARTH_RADIUS_NMI, DEG2RAD
