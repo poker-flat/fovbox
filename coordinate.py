@@ -86,7 +86,11 @@ class Coordinate:
                          Either Longitude or Latitude.
         """
         
-        self.coord = str(coord)
+        try:
+            c = float(coord)
+            self.coord = "%.12f" % c
+        except:
+            self.coord = str(coord)
         self._parse(axis)
     
     
@@ -262,7 +266,7 @@ class Coordinate:
         """
         
         if self.coord_dms and self.direction:
-            return "%sd %sm %ss %s" % (
+            return "%dd %dm %.6fs %s" % (
                 self.coord_dms[0],
                 self.coord_dms[1],
                 self.coord_dms[2],
@@ -283,7 +287,7 @@ class Coordinate:
         """
         
         if self.coord_dd or (self.coord_dd != None and int(self.coord_dd) == 0) and self.direction:
-            return "%s %s" % (
+            return "%.12f %s" % (
                 self.coord_dd,
                 self.direction
                 )
@@ -298,12 +302,11 @@ class Coordinate:
         Returns:
         {string} The decimal degree representation of the coordinate.
         """
-        
         if self.direction in ['W', 'S']:
-            return "-%s" % self.coord_dd
+            return "-%.12f" % self.coord_dd
         else:
             if self.coord_dd or (self.coord_dd != None and int(self.coord_dd) == 0):
-                return "%s" % self.coord_dd
+                return "%.12f" % self.coord_dd
             else:
                 return None
     
@@ -352,11 +355,11 @@ class Coordinate:
         Prints debug information.
         """
         
-        print "Coord:    %s" % self.getCoord()
-        print "DD:       %s" % self.getDd()
-        print "DDNum:    %s" % self.getDdNum()
-        print "DDString: %s" % self.getDdString()
-        print "DMS:      %s" % self.getDms()
+        print "Coord:    %.12f" % self.getCoord()
+        print "DD:       %.12f" % self.getDd()
+        print "DDNum:    %.12f" % self.getDdNum()
+        print "DDString: %.12f" % self.getDdString()
+        print "DMS:      %.12f" % self.getDms()
 
 
 class Point:
@@ -405,7 +408,7 @@ class Point:
         {string} The string representation of the point.
         """
         
-        return "(%s, %s)" % (self.x, self.y)
+        return "(%.12f, %12f)" % (self.x, self.y)
     
     
     def geoDistanceTo(self, point, units='km'):
@@ -550,6 +553,24 @@ class Point:
             wp.x = self.x + math.atan(a/b) * RAD2DEG
         
         return wp
-
+    
+    def rotate(self, point, degrees):
+        """
+        Method: rotate
+        
+        Parameters:
+        point   - {<Point>}
+        degrees - {float}
+        
+        Returns:
+        {<Point>} - The generated point given by point and degrees.
+        """
+        if degrees == 0.0 or degrees == 360.0:
+            return self
+        
+        bearing = point.geoBearingTo(self)
+        distance = point.geoDistanceTo(self)
+        
+        return point.geoWaypoint(distance, bearing+degrees)
 
 
