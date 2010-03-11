@@ -1,49 +1,69 @@
-"""
-Module: coordinate
+# File: coordinate.py
+# Coordinate module used to transform coordinates and perform calculations.
+#
+# About:
+# Author: Jonathan Sawyer
+#
+# Copyright (C) 2009, 2010, Geographic Information Network of Alaska, University of Alaska Fairbanks
+# All rights reserved. You may not use any portion of this code without prior written
+# permission fromn the Geographic Information Network of Alaska or the University of Alaska
+# Fairbanks.
 
-Description:
-Coordinate library that contains these classes:
-{<Coordinate>} - Parses and represents geographic coordinates (latitude and
-                 longitude).
-{<Point>} - Contains methods to calculate range, bearing, and create points
-            from those.
-
-Decimal degrees:
-    123.12341234[NSEW]
-    [NSEW+-]123.12341234
-    
-Degrees-minutes-seconds:
-    [NSEW+-]11d 22m 33.33333s
-    11d 22m 33.33333s[NSEW]
-    11:22:33.33333[NSEW]
-    [NSEW+-]11:22:33.33333
-    
-Examples:
-    -64.12347874
-    44D 10M 32.123S S
-    N 89.1234
-"""
+#
+# Module: coordinate
+#
+# Description:
+# Coordinate library that contains these classes:
+# {<Coordinate>} - Parses and represents geographic coordinates (latitude and
+#                  longitude).
+# {<Point>} - Contains methods to calculate range, bearing, and create points
+#             from those.
+#
+# Decimal degrees:
+#    123.12341234[NSEW]
+#    [NSEW+-]123.12341234
+#
+# Degrees-minutes-seconds:
+#     [NSEW+-]11d 22m 33.33333s
+#     11d 22m 33.33333s[NSEW]
+#     11:22:33.33333[NSEW]
+#     [NSEW+-]11:22:33.33333
+#
+# Examples:
+#     -64.12347874
+#     44D 10M 32.123S S
+#     N 89.1234
+#
 
 import re
 import math
 
-EARTH_RADIUS_MI = 3958.761   # in miles (According to IUGG)
+#
+# Constants: Radius
+# EARTH_RADIUS_MI - in miles (According to IUGG)
+# EARTH_RADIUS_FT - derived from <EARTH_RADIUS_MI>
+# EARTH_RADIUS_KM - in kilometers (According to IUGG)
+# EARTH_RADIUS_M  - derived from <EARTH_RADIUS_KM>
+# EARTH_RADIUS_NMI - in nautical miles (According to IUGG)
+# EARTH_RADIUS - default radius
+# DEG2RAD - factor to convert degrees to radians (PI/180)
+# RAD2DEG - factor to convert radians to degrees (180/PI)
+#
+EARTH_RADIUS_MI = 3958.761
 EARTH_RADIUS_FT = EARTH_RADIUS_MI * 5280.0
-EARTH_RADIUS_KM = 6371.009   # in kilometers (According to IUGG)
+EARTH_RADIUS_KM = 6371.009
 EARTH_RADIUS_M = EARTH_RADIUS_KM * 1000.0
-EARTH_RADIUS_NMI = 3440.069  # in nautical miles (According to IUGG).
-EARTH_RADIUS = EARTH_RADIUS_KM # default radius
-DEG2RAD =  0.01745329252  # factor to convert degrees to radians (PI/180)
+EARTH_RADIUS_NMI = 3440.069
+EARTH_RADIUS = EARTH_RADIUS_KM
+DEG2RAD =  0.01745329252
 RAD2DEG = 57.29577951308
 
+#
+# Class: Coordinate
+#
+# Parse an input into a known coordinate.
+#
 class Coordinate:
-    """
-    Class: Coordinate
-    
-    Description:
-    Parse an input into a known coordinate.
-    """
-    
     coord = None     # string
     
     coord_dd = None  # real number
@@ -76,16 +96,15 @@ class Coordinate:
         ]
     
     
+    # 
+    # Method: Constructor
+    # 
+    # Parameters:
+    # coord - {string} The unformatted coordinate to parse
+    # axis  - {string} The axis in which the unformatted coordinate is in.
+    #                  Either Longitude or Latitude.
+    #
     def __init__(self, coord, axis=''):
-        """
-        Constructor: __init__
-        
-        Parameters:]
-        coord - {string} The unformatted coordinate to parse
-        axis  - {string} The axis in which the unformatted coordinate is in.
-                         Either Longitude or Latitude.
-        """
-        
         try:
             c = float(coord)
             self.coord = "%.12f" % c
@@ -94,15 +113,16 @@ class Coordinate:
         self._parse(axis)
     
     
+    #
+    # Method: _parse
+    #
+    # (Private) Parse the objects own data.
+    #
+    # Parameters:
+    # axis - {string} The axis in which the unformatted coordinate is in.
+    #                 Either Longitude or Latitude
+    #
     def _parse(self, axis=''):
-        """
-        Private Method: _parse
-        
-        Parameters:
-        axis - {string} The axis in which the unformatted coordinate is in.
-                        Either Longitude or Latitude
-        """
-        
         # Match the unformatted coordinate by the given regular expressions
         # list.
         position = 1
@@ -138,17 +158,18 @@ class Coordinate:
             self._parse_dms((self.groups[1], self.groups[2], self.groups[3]))
     
     
+    #
+    # Method: _parse_direction
+    #
+    # (Private) Parse the direction given by `direction` and `axis`.
+    #
+    # Parameters:
+    # direction - {string} The direction, given by a string of either +, -, N,
+    #                      S, E, or W.
+    # axis - {string} The axis in which the unformatted coordinate is in.
+    #                 Either Longitude or Latitude.
+    #
     def _parse_direction(self, direction, axis):
-        """
-        Private Method: _parse_direction
-        
-        Parameters:
-        direction - {string} The direction, given by a string of either +, -, N,
-                             S, E, or W.
-        axis - {string} The axis in which the unformatted coordinate is in.
-                        Either Longitude or Latitude.
-        """
-        
         direction = direction.lower()
         axis = axis.lower()
         
@@ -173,15 +194,16 @@ class Coordinate:
                 self.direction = 'S'
     
     
+    #
+    # Method: _parse_dms
+    #
+    # (Private) Parse the degrees-minutes-seconds of a 3-tuple. Returns nothing.
+    #
+    # Parameters:
+    # dms - {3-tuple} A 3-tuple representing the degrees, minutes, and seconds
+    #                 of a coordinate.
+    #
     def _parse_dms(self, dms):
-        """
-        Private Method: _parse_dms
-        
-        Parameters:
-        dms - {3-tuple} A 3-tuple representing the degrees, minutes, and seconds
-                        of a coordinate.
-        """
-        
         if len(dms) != 3 or not isinstance(dms, tuple):
             return
         
@@ -194,31 +216,33 @@ class Coordinate:
         self.coord_dd = self._dms2dd(self.coord_dms)
     
     
+    #
+    # Method: _parse_dd
+    #
+    # (Private) Parse the decimal degrees of a float. Returns nothing.
+    #
+    # Parameters:
+    # dd - {float} The decimal degree representation of the coordinate.
+    #
     def _parse_dd(self, dd):
-        """
-        Private Method: _parse_dd
-        
-        Parameters:
-        dd - {float} The decimal degree representation of the coordinate.
-        """
-        
         self.coord_dd = float(dd)
         
         self.coord_dms = self._dd2dms(self.coord_dd)
     
     
+    #
+    # Method: _dd2dms
+    #
+    # (Private) Convert decimal degrees into degrees-minutes-seconds.
+    #
+    # Parameters:
+    # coord - {float} The decimal degree representation of the coordinate.
+    #
+    # Returns:
+    # {3-tuple} A 3-tuple representing the degrees, minutes, and seconds of a
+    # coordinate.
+    #
     def _dd2dms(self, coord):
-        """
-        Private Method: _dd2dms
-        
-        Parameters:
-        coord - {float} The decimal degree representation of the coordinate.
-        
-        Returns:
-        {3-tuple} A 3-tuple representing the degrees, minutes, and seconds of a
-                  coordinate.
-        """
-        
         import math
         
         if not isinstance(coord, float):
@@ -232,18 +256,19 @@ class Coordinate:
         return (int(d), int(m), round(float(s), 6))
     
     
+    #
+    # Method: _dms2dd
+    #
+    # (Private) Convert degrees-minutes-seconds into decimal degrees.
+    #
+    # Parameters:
+    # coord - {3-tuple} A 3-tuple representing the degrees, minutes, and
+    #                   seconds of a coordinate.
+    #
+    # Returns:
+    # {float} The decimal degree representation of the coordinate.
+    #
     def _dms2dd(self, coord):
-        """
-        Private Method: _dms2dd
-        
-        Parameters:
-        coord - {3-tuple} A 3-tuple representing the degrees, minutes, and
-                          seconds of a coordinate.
-        
-        Returns:
-        {float} The decimal degree representation of the coordinate.
-        """
-        
         if len(coord) != 3 or not isinstance(coord, tuple):
             return 0.0
         
@@ -257,14 +282,13 @@ class Coordinate:
         return round(float(dd), 6)
     
     
+    #
+    # Method: getDms
+    #
+    # Returns:
+    # {string} The degrees-minutes-seconds representation of the coordinate.
+    #
     def getDms(self):
-        """
-        Method: getDms
-        
-        Returns:
-        {string} The degrees-minutes-seconds representation of the coordinate.
-        """
-        
         if self.coord_dms and self.direction:
             return "%dd %dm %.6fs %s" % (
                 self.coord_dms[0],
@@ -276,16 +300,15 @@ class Coordinate:
             return None
     
     
+    #
+    # Method: getDdString
+    #
+    # Returns:
+    # {string} The decimal degree representation of the coordinate with
+    #          direction. Does not use the negative sign but instead either
+    #          'W' or 'S'.
+    #
     def getDdString(self):
-        """
-        Method: getDdString
-        
-        Returns:
-        {string} The decimal degree representation of the coordinate with
-                 direction. Does not use the negative sign but instead either
-                 'W' or 'S'.
-        """
-        
         if self.coord_dd or (self.coord_dd != None and int(self.coord_dd) == 0) and self.direction:
             return "%.12f %s" % (
                 self.coord_dd,
@@ -295,13 +318,13 @@ class Coordinate:
             return None
     
     
+    #
+    # Method: getDdNum
+    #
+    # Returns:
+    # {string} The decimal degree representation of the coordinate.
+    #
     def getDdNum(self):
-        """
-        Method: getDdNum
-        
-        Returns:
-        {string} The decimal degree representation of the coordinate.
-        """
         if self.direction in ['W', 'S']:
             return "-%.12f" % self.coord_dd
         else:
@@ -311,50 +334,46 @@ class Coordinate:
                 return None
     
     
+    #
+    # Method: getDd
+    #
+    # Returns:
+    # {string} The decimal degree representation of the coordinate.
+    #
     def getDd(self):
-        """
-        Method: getDd
-        
-        Returns:
-        {string} The decimal degree representation of the coordinate.
-        """
-        
         return self.getDdNum()
     
     
+    #
+    # Method: getCoord
+    #
+    # Returns:
+    # {string} The coordinate as entered in by the user.
+    #
     def getCoord(self):
-        """
-        Method: getCoord
-        
-        Returns:
-        {string} The coordinate as entered in by the user.
-        """
-        
         return "%s" % self.coord
     
     
+    #
+    # Method: isValid
+    #
+    # Returns:
+    # {boolean} True if the coordinate parsing succeeded, False otherwise.
+    #
     def isValid(self):
-        """
-        Method: isValid
-        
-        Returns:
-        {boolean} True if the coordinate parsing succeeded, False otherwise.
-        """
-        
         try:
             return (self.coord_dd or int(self.coord_dd) == 0) and self.coord_dms and self.direction
         except:
             return False
     
     
+    #
+    # Method: debug
+    #
+    # Description:
+    # Prints debug information.
+    #
     def debug(self):
-        """
-        Method: debug
-        
-        Description:
-        Prints debug information.
-        """
-        
         print "Coord:    %.12f" % self.getCoord()
         print "DD:       %.12f" % self.getDd()
         print "DDNum:    %.12f" % self.getDdNum()
@@ -362,67 +381,58 @@ class Coordinate:
         print "DMS:      %.12f" % self.getDms()
 
 
+#
+# Class: Point
+#
+# Requires:
+# <Coordinate> - Coordinate parsing class used in the constructor of this
+#                class.
+#
+# Reference:
+# Williams, Ed, 2000, "Aviation Formulary V1.43" web page
+# http://williams.best.vwh.net/avform.htm
+#
 class Point:
-    """
-    Class: Point
-    
-    Public Methods:
-    __init__ - Constructor.
-    __str__ - String formatting function.
-    geoDistanceTo - Calculates the geographic distance between two points.
-    geoBearingTo - Calculates the geographic bearing (from North) between two
-                   points.
-    geoWaypoint - Returns a <Point> who's coordinates are calculated by the
-                  range abd bearing parameters.
-    
-    Requires:
-    <Coordinate> - Coordinate parsing class used in the constructor of this
-                   class.
-    
-    Reference:
-    Williams, Ed, 2000, "Aviation Formulary V1.43" web page
-    http://williams.best.vwh.net/avform.htm
-    """
-    
     x = None
     y = None
     
     
+    #
+    # Method: Constructor
+    #
+    # Parameters:
+    # x - {string} The x coordinate of the point.
+    # y - {string} The y coordinate of the point.
+    #
     def __init__(self, x, y):
-        """
-        Method: __init__ (Constructor)
-        """
-        
         self.x = float(Coordinate(x, "Lon").getDd())
         self.y = float(Coordinate(y, "Lat").getDd())
     
     
+    #
+    # Method: __str__
+    #
+    # Description:
+    # Overloaded print function
+    #
+    # Returns:
+    # {string} The string representation of the point.
+    #
     def __str__(self):
-        """
-        Method: __str__
-        
-        Description:
-        Overloaded print function
-        
-        Returns:
-        {string} The string representation of the point.
-        """
-        
         return "(%.12f, %12f)" % (self.x, self.y)
     
     
+    #
+    # Method: geoDistanceTo
+    #
+    # Parameters:
+    # point - {<Point>}
+    #
+    # Returns:
+    # {float} Great Circle distance to Point. Coordinates must be in decimal
+    # degrees.
+    #
     def geoDistanceTo(self, point, units='km'):
-        """
-        Method: geoDistanceTo
-        
-        Parameters:
-        point - {<Point>}
-        
-        Returns:
-        {float} Great Circle distance to Point. Coordinates must be in decimal
-        degrees.
-        """
-        
         global EARTH_RADIUS_KM, EARTH_RADIUS_MI, EARTH_RADIUS_NMI, DEG2RAD
         
         x = [0, 0]
@@ -455,17 +465,16 @@ class Point:
         return 2 * math.asin( c ) * radius
     
     
+    #
+    # Method: geoBearingTo
+    #
+    # Parameters:
+    # point - {<Point>}
+    #
+    # Returns:
+    # {float} - The bearing clockwise from North in degrees.
+    #
     def geoBearingTo(self, point):
-        """
-        Method: geoBearingTo
-        
-        Parameters:
-        point - {<Point>}
-        
-        Returns:
-        {float} - The bearing clockwise from North in degrees.
-        """
-        
         global EARTH_RADIUS_KM, EARTH_RADIUS_MI, EARTH_RADIUS_NMI
         global DEG2RAD, RAD2DEG
         
@@ -502,19 +511,18 @@ class Point:
         return (math.atan(a/b) + adjust) * RAD2DEG
     
     
+    #
+    # Method: geoBearingTo
+    #
+    # Parameters:
+    # distance - {float}
+    # bearing  - {float}
+    # units    - {string}
+    #
+    # Returns:
+    # {<Point>} - The generated point given by distance and bearing.
+    #
     def geoWaypoint(self, distance, bearing, units='km'):
-        """
-        Method: geoBearingTo
-        
-        Parameters:
-        distance - {float}
-        bearing  - {float}
-        units    - {string}
-        
-        Returns:
-        {<Point>} - The generated point given by distance and bearing.
-        """
-        
         global EARTH_RADIUS_KM, EARTH_RADIUS_MI, EARTH_RADIUS_NMI
         global DEG2RAD, RAD2DEG
         
@@ -554,17 +562,17 @@ class Point:
         
         return wp
     
+    #
+    # Method: rotate
+    #
+    # Parameters:
+    # point   - {<Point>} The point in which to rotate about.
+    # degrees - {float} The rotation angle in degrees.
+    #
+    # Returns:
+    # {<Point>} - The generated point given by point and degrees.
+    #
     def rotate(self, point, degrees):
-        """
-        Method: rotate
-        
-        Parameters:
-        point   - {<Point>}
-        degrees - {float}
-        
-        Returns:
-        {<Point>} - The generated point given by point and degrees.
-        """
         if degrees == 0.0 or degrees == 360.0:
             return self
         
@@ -572,5 +580,3 @@ class Point:
         distance = point.geoDistanceTo(self)
         
         return point.geoWaypoint(distance, bearing+degrees)
-
-
