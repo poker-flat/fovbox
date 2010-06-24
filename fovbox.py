@@ -178,6 +178,9 @@ def mainfunc():
     # Calculate the left and right edge of the viewing angle
     d_horiz = alt * math.tan( xhalf )
     
+    debug("d vert: %s" % d_vert)
+    debug("d horiz: %s" % d_horiz)
+
     # Calculate corner distance
     dist = math.sqrt( d_vert * d_vert + d_horiz * d_horiz )
     
@@ -221,11 +224,13 @@ def mainfunc():
     ll = ll.rotate(cp, options.azimuth)
     
     debug("Rotated:")
+    print "CP\t%13.8f\t%13.8f" % (cp.x, cp.y)
     print "UL\t%13.8f\t%13.8f" % (ul.x, ul.y)
     print "LL\t%13.8f\t%13.8f" % (ll.x, ll.y)
     print "UR\t%13.8f\t%13.8f" % (ur.x, ur.y)
     print "LR\t%13.8f\t%13.8f" % (lr.x, lr.y)
-    print "CP\t%13.8f\t%13.8f" % (cp.x, cp.y)
+    print "DW\t%13.8f %s" % (d_horiz*2, 'm')
+    print "DH\t%13.8f %s" % (d_vert*2, 'm')
     
     debug("Azimuth: %s" % options.azimuth)
     debug("Distance: %s %s" % (dist, options.units))

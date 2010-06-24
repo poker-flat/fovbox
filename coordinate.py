@@ -512,7 +512,7 @@ class Point:
     
     
     #
-    # Method: geoBearingTo
+    # Method: geoWaypoint
     #
     # Parameters:
     # distance - {float}
